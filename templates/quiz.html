@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Study MCQs | Quiz</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- ================= HEADER ================= -->
+    <header class="site-header">
+        <div class="container header-content">
+
+            <a href="{{ url_for('home') }}" class="logo">
+                <span class="logo-icon">S</span>
+                <span>Study MCQs</span>
+            </a>
+
+            <nav class="nav-menu">
+                <a href="{{ url_for('home') }}">Home</a>
+                <a href="{{ url_for('quiz') }}" class="active">Quiz</a>
+            </nav>
+
+        </div>
+    </header>
+
+
+    <!-- ================= QUIZ ================= -->
+    <main class="quiz-page">
+
+        <div class="container">
+
+            <div class="quiz-header">
+
+                <div>
+                    <span class="section-label">Practice Test</span>
+                    <h1>Study MCQs Quiz</h1>
+                    <p>Test your knowledge and improve your preparation.</p>
+                </div>
+
+                <div class="quiz-badge">
+                    MCQs
+                </div>
+
+            </div>
+
+
+            <!-- Progress -->
+            <div class="progress-wrapper">
+
+                <div class="progress-info">
+                    <span>Question</span>
+                    <span>
+                        <strong id="current-question">1</strong>
+                        /
+                        <strong id="total-question">
+                            {{ questions|length }}
+                        </strong>
+                    </span>
+                </div>
+
+                <div class="progress-bar">
+                    <div
+                        class="progress-fill"
+                        id="progress-fill"
+                        style="width: 0%;">
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- ================= FORM ================= -->
+
+            <form method="POST"
+                  action="{{ url_for('quiz') }}"
+                  id="quiz-form">
+
+                {% for question in questions %}
+
+                <section class="question-card"
+                         data-question="{{ loop.index }}"
+                         {% if not loop.first %}style="display:none;"{% endif %}>
+
+                    <div class="question-number">
+                        Question {{ loop.index }}
+                    </div>
+
+                    <h2 class="question-text">
+                        {{ question.question }}
+                    </h2>
+
+
+                    <!-- Options -->
+                    <div class="options">
+
+                        {% for option in question.options %}
+
+                        <label class="option-card">
+
+                            <input
+                                type="radio"
+                                name="question{{ loop.index0 }}"
+                                value="{{ option }}"
+                                required
+                            >
+
+                            <span class="option-letter">
+                                {{ "ABCD"[loop.index0] }}
+                            </span>
+
+                            <span class="option-text">
+                                {{ option }}
+                            </span>
+
+                        </label>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- Navigation -->
+
+                    <div class="question-navigation">
+
+                        {% if not loop.first %}
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary prev-btn">
+                            ← Previous
+                        </button>
+
+                        {% else %}
+
+                        <span></span>
+
+                        {% endif %}
+
+
+                        {% if not loop.last %}
+
+                        <button
+                            type="button"
+                            class="btn btn-primary next-btn">
+                            Next →
+                        </button>
+
+                        {% else %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-success">
+                            Submit Quiz ✓
+                        </button>
+
+                        {% endif %}
+
+                    </div>
+
+                </section>
+
+                {% endfor %}
+
+            </form>
+
+        </div>
+
+    </main>
+
+
+    <!-- ================= JAVASCRIPT ================= -->
+
+    <script>
+
+        const questions =
+            document.querySelectorAll(".question-card");
+
+        const nextButtons =
+            document.querySelectorAll(".next-btn");
+
+        const previousButtons =
+            document.querySelectorAll(".prev-btn");
+
+        const progressFill =
+            document.getElementById("progress-fill");
+
+        const currentQuestion =
+            document.getElementById("current-question");
+
+        const totalQuestions =
+            questions.length;
+
+
+        let currentIndex = 0;
+
+
+        function showQuestion(index) {
+
+            questions.forEach((question, i) => {
+
+                question.style.display =
+                    i === index ? "block" : "none";
+
+            });
+
+
+            currentIndex = index;
+
+
+            currentQuestion.textContent =
+                index + 1;
+
+
+            const progress =
+                ((index + 1) / totalQuestions) * 100;
+
+
+            progressFill.style.width =
+                progress + "%";
+
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        }
+
+
+        nextButtons.forEach(button => {
+
+            button.addEventListener("click", function () {
+
+                const current =
+                    questions[currentIndex];
+
+                const selected =
+                    current.querySelector(
+                        'input[type="radio"]:checked'
+                    );
+
+
+                if (!selected) {
+
+                    alert(
+                        "Please select an answer before continuing."
+                    );
+
+                    return;
+                }
+
+
+                if (currentIndex < totalQuestions - 1) {
+
+                    showQuestion(currentIndex + 1);
+
+                }
+
+            });
+
+        });
+
+
+        previousButtons.forEach(button => {
+
+            button.addEventListener("click", function () {
+
+                if (currentIndex > 0) {
+
+                    showQuestion(currentIndex - 1);
+
+                }
+
+            });
+
+        });
+
+
+        document
+            .getElementById("quiz-form")
+            .addEventListener("submit", function (event) {
+
+                const current =
+                    questions[currentIndex];
+
+                const selected =
+                    current.querySelector(
+                        'input[type="radio"]:checked'
+                    );
+
+
+                if (!selected) {
+
+                    event.preventDefault();
+
+                    alert(
+                        "Please select an answer before submitting."
+                    );
+
+                }
+
+            });
+
+
+        /* Initial question */
+
+        if (totalQuestions > 0) {
+
+            showQuestion(0);
+
+        }
+
+    </script>
+
+</body>
+</html>
